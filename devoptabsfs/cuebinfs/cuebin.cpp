@@ -66,11 +66,13 @@ int  CCUEBINFS::cuebinfs_open     (struct _reent *r, void *fileStruct, const cha
 	}
 	
 	
-	
+	printf("Opening FILE %s\r\n",path);
 	int mytrackid = priv->discimage->findtrack(path);
 	if(mytrackid == -1)return -1;
 	int openbin = priv->discimage->openBinaryFile();
+	
 	if(openbin == -1)return -1;
+	
 	
 	priv_file->trackid = mytrackid;
 	priv_file->offset = 0;
@@ -97,6 +99,7 @@ ssize_t   CCUEBINFS::cuebinfs_read     (struct _reent *r, void *fd, char *ptr, s
     auto lk = std::scoped_lock(priv->session_mutex);
 	
 	ssize_t bytes_read = priv->discimage->track_data_read(priv_file->trackid,ptr,len,priv_file->offset);
+	printf("READ: %d\n",bytes_read);
 	priv_file->offset=priv_file->offset+bytes_read;
 	
 	

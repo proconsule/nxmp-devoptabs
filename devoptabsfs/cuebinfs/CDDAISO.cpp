@@ -15,10 +15,10 @@ typedef struct WAV_HEADER {
   uint32_t Subchunk1Size = 16;           // Size of the fmt chunk
   uint16_t AudioFormat = 1; // Audio format 1=PCM,6=mulaw,7=alaw,     257=IBM
                             // Mu-Law, 258=IBM A-Law, 259=ADPCM
-  uint16_t NumOfChan = 1;   // Number of channels 1=Mono 2=Sterio
-  uint32_t SamplesPerSec = 16000;   // Sampling Frequency in Hz
-  uint32_t bytesPerSec = 16000 * 2; // bytes per second
-  uint16_t blockAlign = 2;          // 2=16-bit mono, 4=16-bit stereo
+  uint16_t NumOfChan = 2;   // Number of channels 1=Mono 2=Sterio
+  uint32_t SamplesPerSec = 44100;   // Sampling Frequency in Hz
+  uint32_t bytesPerSec = 44100 * 2; // bytes per second
+  uint16_t blockAlign = 4;          // 2=16-bit mono, 4=16-bit stereo
   uint16_t bitsPerSample = 16;      // Number of bits per sample
   /* "data" sub-chunk */
   uint8_t Subchunk2ID[4] = {'d', 'a', 't', 'a'}; // "data"  string
@@ -84,13 +84,12 @@ int readfile(std::string _path,char **buffer){
 int CCDDAISO::findtrack(std::string _name){
 	
 	std::filesystem::path const p(_name);
-	
 	for(int i=0;i<cdaudio_tracks.size();i++){
 		if(cdaudio_tracks[i].trackname == p.filename()){
+			
 			return i;
 		}
 	}
-	
 	return -1;
 	
 }
@@ -136,28 +135,30 @@ size_t CCDDAISO::track_data_read(int _track,char *_buf,size_t _size,size_t offse
 	
 	if(offset >=44){
 	
-		if(_track >= 0 && _track <cdaudio_tracks.size()){
+		if(_track >= 0 && _track < cdaudio_tracks.size()){
 		
 			if(binnaryfile != NULL){
-				if(offset>binnaryfile,cdaudio_tracks[_track].endoffset)return -1;
+				if(offset>cdaudio_tracks[_track].endoffset+44)return -1;
 				fseek(binnaryfile,cdaudio_tracks[_track].startoffset+offset-44,SEEK_SET);
 				size_t bytes_read = fread(_buf,sizeof( char ),_size,binnaryfile);
-				
 				return bytes_read;
 			}
+		}else{
+			
 		}
 	
 	}else{
 		
-		if(_size > 44-offset){
+		if(_size >= 44-offset){
 			char * headerchar = reinterpret_cast<const char *>(&wav);
 		    memcpy(_buf,&headerchar[offset],44-offset);
 			fseek(binnaryfile,cdaudio_tracks[_track].startoffset+offset-44,SEEK_SET);
-			size_t bytes_read = fread(_buf,sizeof( char ),_size-44-offset,binnaryfile);
+			size_t bytes_read = fread(&_buf[44-offset],sizeof( char ),_size-44+offset,binnaryfile);
+			return bytes_read+44-offset;
 		}else{
 			char * headerchar = reinterpret_cast<const char *>(&wav);
 		    memcpy(_buf,&headerchar[offset],_size);
-		
+			return _size;
 		
 		}
 		
