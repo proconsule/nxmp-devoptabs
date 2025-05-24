@@ -39,9 +39,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source devoptabsfs/m3u8fs devoptabsfs/ftpfs devoptabsfs/libarchivefs devoptabsfs/nfsfs devoptabsfs/smb2fs devoptabsfs/sshfs 
+SOURCES		:=	source devoptabsfs/cuebinfs devoptabsfs/m3u8fs devoptabsfs/ftpfs devoptabsfs/libarchivefs devoptabsfs/nfsfs devoptabsfs/smb2fs devoptabsfs/sshfs 
 DATA		:=	data 
-INCLUDES	:=	source devoptabsfs/m3u8fs devoptabsfs/ftpfs devoptabsfs/libarchivefs devoptabsfs/nfsfs devoptabsfs/smb2fs devoptabsfs/sshfs 
+INCLUDES	:=	source devoptabsfs/cuebinfs devoptabsfs/m3u8fs devoptabsfs/ftpfs devoptabsfs/libarchivefs devoptabsfs/nfsfs devoptabsfs/smb2fs devoptabsfs/sshfs 
 ROMFS	:=	romfs
 
 
