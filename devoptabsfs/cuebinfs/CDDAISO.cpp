@@ -83,8 +83,10 @@ int readfile(std::string _path,char **buffer){
 
 int CCDDAISO::findtrack(std::string _name){
 	
+	std::filesystem::path const p(_name);
+	
 	for(int i=0;i<cdaudio_tracks.size();i++){
-		if(cdaudio_tracks[i].trackname == _name){
+		if(cdaudio_tracks[i].trackname == p.filename()){
 			return i;
 		}
 	}
@@ -192,7 +194,12 @@ CCDDAISO::CCDDAISO(std::string _path){
             }else{
                 tmp.endoffset = binfilesize;
             }
-			tmp.trackname = std::string("Track_" + std::to_string(cdaudio_tracks.size()+1) + std::string(".wav"));
+			
+			std::stringstream ss;
+			ss << std::setw(2) << std::setfill('0') << cdaudio_tracks.size()+1;
+			std::string s_trackid = ss.str();
+			
+			tmp.trackname = std::string("Track_" + s_trackid  + std::string(".wav"));
             tmp.playtime = ((tmp.endoffset-tmp.startoffset)/2352.0)/75.0;
             cdaudio_tracks.push_back(tmp);
 
