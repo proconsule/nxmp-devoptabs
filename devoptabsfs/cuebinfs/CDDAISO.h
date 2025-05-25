@@ -47,6 +47,8 @@ public:
 	
 	int openBinaryFile();
     int closeBinaryFile();
+	
+	
     
     
 private:

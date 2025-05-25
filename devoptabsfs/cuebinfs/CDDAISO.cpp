@@ -169,9 +169,8 @@ size_t CCDDAISO::track_data_read(int _track,char *_buf,size_t _size,size_t offse
 
 CCDDAISO::CCDDAISO(std::string _path){
     
-    
-    //long myfilesize = filesize();
-    cuefile = _path;
+	
+	cuefile = _path;
     char *buffer;
     readfile(_path.c_str(),&buffer);
     std::string _isodirectory = std::filesystem::path(cuefile);
@@ -187,6 +186,11 @@ CCDDAISO::CCDDAISO(std::string _path){
         while(tracktest != nullptr){
             cdaudio_struct tmp;
             
+			if(tracktest->track_mode != 0){
+				delete test;
+				free(buffer);
+				return;
+			}
             tmp.startoffset = tracktest->track_start*tracktest->sector_length;
            
             tracktest = test->next_track();
@@ -207,7 +211,7 @@ CCDDAISO::CCDDAISO(std::string _path){
         }
         
     }else{
-		
+		delete test;
 		free(buffer);
         return;
 		
