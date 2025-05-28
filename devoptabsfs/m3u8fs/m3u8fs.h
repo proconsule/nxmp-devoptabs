@@ -1,6 +1,10 @@
 #ifndef M3U8FS_DEVOPTAB_H
 #define M3U8FS_DEVOPTAB_H
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_M3U8
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -129,4 +133,5 @@ protected:
 	
 };
 
+#endif
 #endif

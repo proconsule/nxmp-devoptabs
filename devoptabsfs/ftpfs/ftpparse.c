@@ -24,6 +24,8 @@ NCSA Telnet FTP server. Has LIST = NLST (and bad NLST for directories).
 #include <time.h>
 #include "ftpparse.h"
 
+#ifdef BUILD_FTP
+
 static long totai(long year, long month, long mday) {
     long result;
     if (month >= 2) month -= 2;
@@ -462,3 +464,5 @@ int ftpparse(struct ftpparse *fp, char *buf, int len) {
 
     return 0;
 }
+
+#endif

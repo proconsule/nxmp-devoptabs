@@ -1,6 +1,11 @@
 #ifndef FTPPARSE_H
 #define FTPPARSE_H
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_FTP
+
+
 /*
 ftpparse(&fp,buf,len) tries to parse one line of LIST output.
 
@@ -48,4 +53,5 @@ time is correct in the local time zone, and gmtime() for REMOTE* times.
 
 extern int ftpparse(struct ftpparse *, char *, int);
 
+#endif
 #endif

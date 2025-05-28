@@ -1,5 +1,7 @@
 #include "cuebinfs.h"
 
+#ifdef BUILD_CUEBIN
+
 void cuebinstat_entry(int _tracksize, struct stat *st);
 
 CCUEBINFS::CCUEBINFS(std::string _url,std::string _name,std::string _mount_name){
@@ -43,8 +45,9 @@ CCUEBINFS::CCUEBINFS(std::string _url,std::string _name,std::string _mount_name)
 
 CCUEBINFS::~CCUEBINFS(){
 	if(discimage!=nullptr)delete discimage;
+	discimage = nullptr;
 	
-	
+	unregister_fs();
 }
 
 
@@ -231,3 +234,4 @@ void cuebinstat_entry(int _tracksize, struct stat *st)
 }
 
 
+#endif

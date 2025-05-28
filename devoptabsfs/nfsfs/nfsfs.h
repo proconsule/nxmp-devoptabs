@@ -1,6 +1,10 @@
 #ifndef NFSFS_DEVOPTAB_H
 #define NFSFS_DEVOPTAB_H
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_NFS
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -109,4 +113,6 @@ protected:
 	
 };
 
+
+#endif
 #endif

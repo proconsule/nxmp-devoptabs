@@ -1,5 +1,7 @@
 /* based on https://gist.github.com/averne/527f3a739d19c8d573b2d6995a33edea */
 
+#ifdef BUILD_SSH
+
 
 #include "sshfs.h"
 #include <fcntl.h>
@@ -685,3 +687,6 @@ int CSSHFS::sshfs_statvfs(struct _reent *r, const char *path, struct statvfs *bu
 
     return 0;
 }
+
+
+#endif

@@ -1,0 +1,24 @@
+diff -ur libiconv-1.18-orig/Makefile.in libiconv-1.18/Makefile.in
+--- libiconv-1.18-orig/Makefile.in	2023-04-01 00:28:35.000000000 +0200
++++ libiconv-1.18/Makefile.in	2025-05-27 11:56:41.641413810 +0200
+@@ -31,11 +31,6 @@
+ 
+ all : lib/localcharset.h force
+ 	cd lib && $(MAKE) all
+-	cd srclib && $(MAKE) all
+-	cd src && $(MAKE) all
+-	cd po && $(MAKE) all
+-	cd man && $(MAKE) all
+-	if test -d tests; then cd tests && $(MAKE) all; fi
+ 
+ lib/localcharset.h :
+ 	builddir="`pwd`"; cd libcharset && $(MAKE) all && $(MAKE) install-lib libdir="$$builddir/lib" includedir="$$builddir/lib"
+@@ -50,8 +45,6 @@
+ install : lib/localcharset.h force
+ 	cd libcharset && $(MAKE) install prefix='$(prefix)' exec_prefix='$(exec_prefix)' libdir='$(libdir)'
+ 	cd lib && $(MAKE) install prefix='$(prefix)' exec_prefix='$(exec_prefix)' libdir='$(libdir)'
+-	cd srclib && $(MAKE) install prefix='$(prefix)' exec_prefix='$(exec_prefix)' libdir='$(libdir)'
+-	cd src && $(MAKE) install prefix='$(prefix)' exec_prefix='$(exec_prefix)' libdir='$(libdir)'
+ 	if [ ! -d $(DESTDIR)$(includedir) ] ; then $(mkinstalldirs) $(DESTDIR)$(includedir) ; fi
+ 	$(INSTALL_DATA) include/iconv.h.inst $(DESTDIR)$(includedir)/iconv.h
+ 	cd po && $(MAKE) install prefix='$(prefix)' exec_prefix='$(exec_prefix)' datarootdir='$(datarootdir)' datadir='$(datadir)'

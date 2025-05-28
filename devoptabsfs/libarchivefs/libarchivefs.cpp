@@ -2,6 +2,9 @@
 
 
 #include "libarchivefs.h"
+#ifdef BUILD_ARCHIVE
+#include <filesystem>
+
 
 CARCHFS::CARCHFS(std::string _url,std::string _name,std::string _mount_name){
 	this->connect_url = _url;
@@ -48,7 +51,7 @@ CARCHFS::~CARCHFS(){
         this->disconnect();
 	
 	unregister_fs();
-	printf("DECOSTRUCTOR\n");
+	
 }
 
 void CARCHFS::disconnect(){
@@ -117,22 +120,25 @@ int       CARCHFS::archfs_open     (struct _reent *r, void *fileStruct, const ch
 		return -1;
 	}
 
-    char* colonPos = strchr(path, ':');
-    if (colonPos) path = colonPos+1;
+	std::filesystem::path const p(path);
 	
-	auto lk = std::scoped_lock(priv->session_mutex);
+    auto lk = std::scoped_lock(priv->session_mutex);
 	priv_file->arch_ctx = archive_read_new();
 	archive_read_support_filter_all(priv_file->arch_ctx);
 	archive_read_support_format_all(priv_file->arch_ctx);
 	priv_file->arch_file = fopen(priv->connect_url.c_str(), "rb");
-	int ret = archive_read_open_FILE(priv_file->arch_ctx, priv_file->arch_file);
-	//if(ret!= ARCHIVE_OK){
-	//	printf("FILE OPEN FAIL %s %d\n",priv->connect_url.c_str(),ret);
-	//	return -1;
+	//priv_file->int_arch_file = open(priv->connect_url.c_str(),O_RDONLY );
+	//if(priv_file->int_arch_file == -1){
+	//	printf("Error Opening FD for %s\r\n",priv->connect_url.c_str());
 	//}
+	//int ret = archive_read_open_filename(priv_file->arch_ctx,priv->connect_url.c_str(),4096);
+	int ret = archive_read_open_FILE(priv_file->arch_ctx, priv_file->arch_file);
+	if(ret == ARCHIVE_FATAL){
+		printf("UNABLE TO OPEN ARCHIVE\r\n");
+	}
 	
 	priv_file->entry = archive_entry_new2( priv_file->arch_ctx );
-	
+	priv_file->offset = 0;
 	while (true) {
 		
 		archfileentry_struct archentry;
@@ -140,12 +146,23 @@ int       CARCHFS::archfs_open     (struct _reent *r, void *fileStruct, const ch
 			archive_read_free(priv_file->arch_ctx);
 			return -1;
 		}
-		if(std::string(path+1) == std::string(archive_entry_pathname(priv_file->entry))){
+		if(p.filename() == std::string(archive_entry_pathname(priv_file->entry))){
 			break;
 		}
 	
 	}
-    return 0;
+	
+	if(archive_entry_size(priv_file->entry) < 100000000){
+		printf("MEMFILE\r\n");
+		priv_file->memfile = true;
+		memcpy(&priv_file->filest,archive_entry_stat(priv_file->entry),sizeof(struct stat));
+		//priv_file->filest = archive_entry_stat(priv_file->entry);
+		priv_file->filebuffer = (uint8_t *)malloc(priv_file->filest.st_size);
+		archive_read_data(priv_file->arch_ctx, (uint8_t *)priv_file->filebuffer, priv_file->filest.st_size);
+	}
+	
+	
+	return 0;
 	
 }
 
@@ -156,6 +173,10 @@ int       CARCHFS::archfs_close    (struct _reent *r, void *fd){
 
     auto lk = std::scoped_lock(priv->session_mutex);
 
+	if(priv_file->memfile){
+		free(priv_file->filebuffer);
+		
+	}
 	
 	
 	archive_entry_free(priv_file->entry);
@@ -164,9 +185,6 @@ int       CARCHFS::archfs_close    (struct _reent *r, void *fd){
 	
     fclose(priv_file->arch_file);
 	
-	//archive_read_free(priv_file->arch_ctx);
-	//archive_read_finish(priv_file->arch_ctx);
-
     return 0;
 }
 
@@ -174,12 +192,24 @@ ssize_t   CARCHFS::archfs_read     (struct _reent *r, void *fd, char *ptr, size_
 	auto *priv      = static_cast<CARCHFS     *>(r->deviceData);
     auto *priv_file = static_cast<CARCHFSFile *>(fd);
 
+	
     auto lk = std::scoped_lock(priv->session_mutex);
 	//archive_seek_data(priv_file->arch_ctx, priv_file->offset,SEEK_END);
-	ssize_t bytes = archive_read_data(priv_file->arch_ctx, ptr, len);
-	priv_file->offset=priv_file->offset+bytes;
-    return bytes;
+	
+	if(priv_file->memfile){
+		if(len+priv_file->offset>priv_file->filest.st_size)len = priv_file->filest.st_size-priv_file->offset;
+		memcpy(ptr,priv_file->filebuffer+priv_file->offset,len);
+		priv_file->offset=priv_file->offset+len;
+		return (ssize_t)len;
+	}else{
+		
+		ssize_t bytes = archive_read_data(priv_file->arch_ctx, ptr, len);
+		priv_file->offset=priv_file->offset+bytes;
+		return bytes;
 
+	}
+	
+	return -1;
 }
 
 
@@ -187,6 +217,8 @@ off_t     CARCHFS::archfs_seek     (struct _reent *r, void *fd, off_t pos, int d
 	auto *priv      = static_cast<CARCHFS     *>(r->deviceData);
     auto *priv_file = static_cast<CARCHFSFile *>(fd);
 
+
+	
     off_t offset;
     switch (dir) {
         default:
@@ -197,15 +229,20 @@ off_t     CARCHFS::archfs_seek     (struct _reent *r, void *fd, off_t pos, int d
             offset = priv_file->offset;
             break;
         case SEEK_END:
-            offset = archive_entry_size(priv_file->entry);
+            offset = priv_file->filest.st_size;
             break;
     }
 
-    
 	auto lk = std::scoped_lock(priv->session_mutex);
+	if(priv_file->memfile){
+		priv_file->offset = offset + pos;
+		printf("SEEK : %d %d %d\r\n",priv_file->offset,pos,dir);		
+	}else{
+		
+		priv_file->offset = offset + pos;
+		int retseek = archive_seek_data(priv_file->arch_ctx,priv_file->offset,dir);
 	
-	priv_file->offset = offset + pos;
-	archive_seek_data(priv_file->arch_ctx,priv_file->offset,dir);
+	}
 	
 	
 	
@@ -216,7 +253,10 @@ int       CARCHFS::archfs_fstat    (struct _reent *r, void *fd, struct stat *st)
 	auto *ctx = static_cast<CARCHFS *>(r->deviceData);
 	auto *priv_file = static_cast<CARCHFSFile *>(fd);
     auto lk = std::scoped_lock(ctx->session_mutex);
-	st = (struct stat *)archive_entry_stat(priv_file->entry);
+	memcpy(st,&priv_file->filest,sizeof(struct stat));
+	//st = (struct stat *)archive_entry_stat(priv_file->entry);
+	//archive_entry_copy_stat(priv_file->entry,st);
+	printf("FSTAT: %d\r\n",st->st_size);
 	return 0;
 }
 
@@ -232,6 +272,7 @@ int       CARCHFS::archfs_stat     (struct _reent *r, const char *file, struct s
 	}
 	
 	memcpy(st,&priv->totalfilelist[rc].st,sizeof(struct stat));
+	printf("STAT: %d\r\n",st->st_size);
 	
 	return 0;
 }
@@ -330,3 +371,5 @@ int CARCHFS::find_fileentry(std::string filepath){
 	}
 	return -1;
 }
+
+#endif

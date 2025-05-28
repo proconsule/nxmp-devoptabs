@@ -1,6 +1,11 @@
 #ifndef SSHFS_DEVOPTAB_H
 #define SSHFS_DEVOPTAB_H
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_SSH
+
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -130,5 +135,7 @@ protected:
 
 	
 };
+
+#endif
 
 #endif

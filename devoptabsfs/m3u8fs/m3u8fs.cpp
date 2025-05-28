@@ -2,6 +2,8 @@
 
 
 #include "m3u8fs.h"
+#ifdef BUILD_M3U8
+
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -393,3 +395,5 @@ void m3u8stat_entry(struct stat *srcst, struct stat *dstst)
 	memcpy(dstst,srcst,sizeof(struct stat));
 	
 }
+
+#endif

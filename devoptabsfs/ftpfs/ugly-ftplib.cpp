@@ -1,6 +1,11 @@
 /* UGLY FTP lib based on https://github.com/codebrainz/ftplib/blob/master/ftplib.c */
 
+
+
+
 #include "ugly-ftplib.h"
+
+#ifdef BUILD_FTP
 #include <sys/poll.h>
 
 #include <string.h>
@@ -803,3 +808,5 @@ int UFTP_MLSDList(server_connection * connection,std::string path){
 	
 	return 0;
 }
+
+#endif

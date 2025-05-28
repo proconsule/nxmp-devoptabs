@@ -1,6 +1,10 @@
 #ifndef CUEBINFS_DEVOPTAB_H
 #define CUEBINFS_DEVOPTAB_H
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_CUEBIN
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -95,4 +99,5 @@ private:
 	
 };
 
+#endif
 #endif

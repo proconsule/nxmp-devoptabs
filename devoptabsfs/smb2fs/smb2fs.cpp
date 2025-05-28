@@ -2,6 +2,7 @@
 
 
 #include "smb2fs.h"
+#ifdef BUILD_SMB2
 
 void smb2stat_entry(smb2_stat_64  *entry, struct stat *st);
 
@@ -462,4 +463,6 @@ void smb2stat_entry(smb2_stat_64  *entry, struct stat *st)
 	st->st_ctime = entry->smb2_ctime;
 	
 }
+
+#endif
 	

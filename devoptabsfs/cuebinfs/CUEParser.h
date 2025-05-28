@@ -24,6 +24,10 @@
 
 #pragma once
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_CUEBIN
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -145,3 +149,5 @@ protected:
     // Remove './' or '.\' from the beginning of the filename as it is not recogized by the SDFat library
     void remove_dot_slash(char* filename, size_t length);
 };
+
+#endif

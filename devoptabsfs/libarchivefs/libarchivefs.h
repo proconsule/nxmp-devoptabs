@@ -1,6 +1,10 @@
 #ifndef ARCHIVEFS_DEVOPTAB_H
 #define ARCHIVEFS_DEVOPTAB_H
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_ARCHIVE
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -73,6 +77,9 @@ private:
 	
 	struct CARCHFSFile {
 			FILE *arch_file;
+			uint8_t * filebuffer;
+			struct stat filest{};
+			bool memfile;
 			struct archive_entry *entry;
 			struct archive *arch_ctx;
 			off_t offset;
@@ -103,4 +110,5 @@ private:
 	
 };
 
+#endif
 #endif

@@ -1,0 +1,45 @@
+# Maintainer:  Dave Murphy <davem@devkitpro.org>
+
+pkgname=switch-libarchive
+pkgver=3.8.0
+pkgrel=1
+pkgdesc='library that can create and read several streaming archive formats'
+arch=('any')
+url="https://www.libarchive.org"
+license=('Simplified BSD')
+options=(!strip libtool staticlibs)
+source=(
+ "http://www.libarchive.org/downloads/libarchive-${pkgver}.tar.gz" "libarchive-3.8.0.patch"
+)
+
+makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
+depends=('switch-bzip2' 'switch-zlib' 'switch-liblzma' 'switch-lz4' 'switch-libexpat' 'switch-libzstd' 'switch-libpcre2')
+groups=('switch-portlibs')
+
+build() {
+  cd libarchive-$pkgver
+
+  source /opt/devkitpro/switchvars.sh
+	patch -Np1 -i "$srcdir"/libarchive-${pkgver}.patch
+   ./configure --prefix="${PORTLIBS_PREFIX}" --host=aarch64-none-elf \
+    --disable-shared --enable-static --with-mbedtls --disable-acl --disable-xattr --disable-bsdcat --disable-bsdtar  --disable-bsdcpio --disable-bsdunzip
+	make -j8
+  
+}
+
+package() {
+  cd libarchive-$pkgver
+
+  source /opt/devkitpro/switchvars.sh
+
+  make DESTDIR="${pkgdir}" install
+
+  # license
+  install -Dm644 "$srcdir"/libarchive-${pkgver}/COPYING  "$pkgdir"${PORTLIBS_PREFIX}/licenses/$pkgname/LICENSE
+  # remove useless stuff
+  rm -r "$pkgdir"${PORTLIBS_PREFIX}/share
+}
+
+sha256sums=('191b5b24811499d5c2e5efa3248975fa6daa5e6a227700cc7b8e54d6d7c06eef' 
+'0157c034c2f32b9b6031d3d89b1ab01cf695a94c92665227790345391e0f93b8'
+)

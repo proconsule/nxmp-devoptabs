@@ -3,6 +3,7 @@
 /* based also on https://github.com/dborth/wiimc/blob/master/source/utils/ftp_devoptab.c */
 
 #include "ftpfs.h"
+#ifdef BUILD_FTP
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -493,3 +494,5 @@ int CFTPFS::ftpfs_statvfs(struct _reent *r, const char *path, struct statvfs *bu
 
     return 0;
 }
+
+#endif

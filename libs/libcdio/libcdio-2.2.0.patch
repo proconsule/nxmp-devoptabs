@@ -1,0 +1,12 @@
+diff -ur libcdio-2.2.0-orig/Makefile.in libcdio-2.2.0/Makefile.in
+--- libcdio-2.2.0-orig/Makefile.in	2025-01-11 16:48:54.000000000 +0100
++++ libcdio-2.2.0/Makefile.in	2025-05-27 12:16:26.032609037 +0200
+@@ -467,7 +467,7 @@
+ 	$(wildcard test/data/*.iso) \
+ 	$(wildcard test/*.right)
+ 
+-SUBDIRS = doc include lib src test example
++SUBDIRS = doc include lib test
+ 
+ # pkg-config(1) related rules
+ pkgconfigdir = $(libdir)/pkgconfig

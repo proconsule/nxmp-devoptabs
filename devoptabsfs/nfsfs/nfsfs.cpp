@@ -1,12 +1,16 @@
 /* based on https://github.com/averne/SwitchWave/blob/master/src/fs/fs_nfs.cpp */
 
 
+
 #include "nfsfs.h"
+#ifdef BUILD_NFS
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/syslimits.h>
 #include <regex>
+
+
 
 void nfsstat_entry(nfs_stat_64  &entry, struct stat *st);
 
@@ -443,3 +447,5 @@ void nfsstat_entry(nfs_stat_64  &entry, struct stat *st)
 	
 	
 }
+
+#endif

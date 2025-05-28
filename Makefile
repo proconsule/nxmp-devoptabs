@@ -39,9 +39,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source devoptabsfs/cuebinfs devoptabsfs/m3u8fs devoptabsfs/ftpfs devoptabsfs/libarchivefs devoptabsfs/nfsfs devoptabsfs/smb2fs devoptabsfs/sshfs 
+SOURCES		:=	source devoptabsfs devoptabsfs/iso9660fs devoptabsfs/cuebinfs devoptabsfs/m3u8fs devoptabsfs/ftpfs devoptabsfs/libarchivefs devoptabsfs/nfsfs devoptabsfs/smb2fs devoptabsfs/sshfs 
 DATA		:=	data 
-INCLUDES	:=	source devoptabsfs/cuebinfs devoptabsfs/m3u8fs devoptabsfs/ftpfs devoptabsfs/libarchivefs devoptabsfs/nfsfs devoptabsfs/smb2fs devoptabsfs/sshfs 
+INCLUDES	:=	source devoptabsfs devoptabsfs/iso9660fs devoptabsfs/cuebinfs devoptabsfs/m3u8fs devoptabsfs/ftpfs devoptabsfs/libarchivefs devoptabsfs/nfsfs devoptabsfs/smb2fs devoptabsfs/sshfs 
 ROMFS	:=	romfs
 
 
@@ -71,7 +71,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -DIMGUI_IMPL_OPENGL
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  `aarch64-none-elf-pkg-config --libs libarchive` `aarch64-none-elf-pkg-config --libs libnfs` `aarch64-none-elf-pkg-config --libs libssh2` `aarch64-none-elf-pkg-config --libs libsmb2` -lnx -lz
+LIBS	:= `aarch64-none-elf-pkg-config --libs libiso9660` `aarch64-none-elf-pkg-config --libs libarchive` `aarch64-none-elf-pkg-config --libs libnfs` `aarch64-none-elf-pkg-config --libs libssh2` `aarch64-none-elf-pkg-config --libs libsmb2` -lnx -lz
 
 
 #---------------------------------------------------------------------------------

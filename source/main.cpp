@@ -6,16 +6,35 @@
 #include "m3u8fs.h"
 #include "ftpfs.h"
 #include "cuebinfs.h"
+#include "iso9660fs.h"
 
+#include <switch.h>
+
+
+#ifdef BUILD_SSH
 CSSHFS * SSHFS = nullptr;
+#endif
+#ifdef BUILD_SMB2
 CSMB2FS * SMB2FS = nullptr;
+#endif
+#ifdef BUILD_NFS
 CNFSFS * NFSFS = nullptr;
+#endif
+#ifdef BUILD_ARCHIVE
 CARCHFS * ARCHFS = nullptr;
-
+#endif
+#ifdef BUILD_FTP
 CFTPFS *FTPFS = nullptr;
+#endif
+#ifdef BUILD_M3U8
 CM3U8FS *M3U8FS = nullptr;
+#endif
+#ifdef BUILD_CUEBIN
 CCUEBINFS *CUEBINFS = nullptr;
-
+#endif
+#ifdef BUILD_ISO9660
+CISO9660FS *ISO9660FS = nullptr;
+#endif
 
 int main(int argc, const char* const* argv) {
 	
@@ -23,12 +42,18 @@ int main(int argc, const char* const* argv) {
 	romfsInit();
 	
 	consoleInit(NULL);
-
+	socketInitializeDefault();
+	nxlinkStdio();
     // Configure our supported input layout: a single player with standard controller styles
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
 	
 	PadState pad;
     padInitializeDefault(&pad);
+	
+	
+	
+	
+	
 	
 	
 	/*
@@ -48,16 +73,21 @@ int main(int argc, const char* const* argv) {
 	M3U8FS = new CM3U8FS("/switch/test.zip","arc0","mfs0:");
 	*/
 	
+	
+	
 	printf("STARTING\r\n");
 	
-	CUEBINFS = new CCUEBINFS("/switch/NXMilk/audiotest.cue","cda0","cda0:");
+	ISO9660FS = new CISO9660FS("/switch/NXMilk/TEST3.ISO","iso0","iso0:");
+	
+	
+	//CUEBINFS = new CCUEBINFS("/switch/NXMilk/audiotest.cue","cda0","cda0:");
 	
 	
 	
 	
 	struct dirent *ent;
 			DIR *dir;
-			std::string path = "cda0:/";
+			std::string path = "iso0:/";
 
 			if (!path.empty()) {
 				if ((dir = opendir(path.c_str())) != nullptr) {
@@ -67,16 +97,16 @@ int main(int argc, const char* const* argv) {
 					
 					
 					
-					while (/*(ent = readdir(dir)) != nullptr*/ true) {
+					while (true) {
 							reent->deviceData = devoptab->deviceData;
 							struct stat st{0};
 							if (devoptab->dirnext_r(reent, dir->dirData, dir->fileData.d_name, &st))
 							break;
 							
-							if ((/*path == "/" ||*/ strlen(dir->fileData.d_name) == 1) && dir->fileData.d_name[0] == '.') {
+							if (( strlen(dir->fileData.d_name) == 1) && dir->fileData.d_name[0] == '.') {
 								continue;
 							}
-							if ((/*path == "/" ||*/ strlen(dir->fileData.d_name) == 2) && dir->fileData.d_name[0] == '.' && dir->fileData.d_name[1] == '.') {
+							if (( strlen(dir->fileData.d_name) == 2) && dir->fileData.d_name[0] == '.' && dir->fileData.d_name[1] == '.') {
 								continue;
 							}
 							
@@ -94,7 +124,17 @@ int main(int argc, const char* const* argv) {
 				
 			}
 			
-			
+	FILE*testfile;
+	testfile = fopen("iso0:/06__hero.wav","rb");
+	if(testfile != NULL){
+		printf("FILE OPEN OK\r\n");
+	}
+	
+	char mybuf[44];
+	fread(mybuf, sizeof mybuf[0], 44, testfile);
+	
+	printf("%s\r\n",mybuf);
+	
 			
 	
 	
@@ -112,9 +152,10 @@ int main(int argc, const char* const* argv) {
 	}
 	
 	
-	delete CUEBINFS;
+	//delete CUEBINFS;
 	
-	//socketExit();
+	delete ISO9660FS;
+	socketExit();
 	consoleExit(NULL);
 	romfsExit();
 	appletUnlockExit();

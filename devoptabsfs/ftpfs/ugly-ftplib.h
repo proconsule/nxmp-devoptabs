@@ -1,6 +1,10 @@
 #ifndef UGLY_FTPLIB_H
 #define UGLY_FTPLIB_H
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_FTP
+
 #include <string>
 #include <vector>
 #include <cstring>
@@ -83,5 +87,6 @@ int UFTP_MLSDList(server_connection * connection,std::string path);
 
 bool UFTP_SetBlocking(int fd,bool val);
 	
-
+	
+#endif
 #endif

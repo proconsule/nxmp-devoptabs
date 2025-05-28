@@ -1,0 +1,43 @@
+# Maintainer:  Dave Murphy <davem@devkitpro.org>
+
+pkgname=switch-libcdio
+pkgver=2.2.0
+pkgrel=1
+pkgdesc='Compact Disc (CD) Input and Control Core Library with some ISO9660, and UDF and SCSI MMC'
+arch=('any')
+url="https://github.com/libcdio/libcdio"
+license=('GPL-3.0')
+options=(!strip libtool staticlibs)
+source=(
+ "https://github.com/libcdio/libcdio/releases/download/${pkgver}/libcdio-${pkgver}.tar.bz2"
+ "libcdio-$pkgver.patch"
+)
+
+makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
+groups=('switch-portlibs')
+
+build() {
+  cd libcdio-$pkgver
+
+  source /opt/devkitpro/switchvars.sh
+   patch -Np1 -i "$srcdir"/libcdio-${pkgver}.patch
+  ./configure --prefix="${PORTLIBS_PREFIX}" --host=aarch64-none-elf \
+    --disable-shared --enable-static  --disable-example-progs --without-cd-drive --without-cd-info --without-cd-read  --without-iso-info --without-iso-read --disable-cpp-progs
+	make -j8
+  
+}
+
+package() {
+  cd libcdio-$pkgver
+
+  source /opt/devkitpro/switchvars.sh
+
+  make DESTDIR="${pkgdir}" install
+
+  rm -r "$pkgdir"${PORTLIBS_PREFIX}/share
+}
+
+sha256sums=('6f8fbdf4d189cf63f2a7a1549c516cd720c7b222c7aaadbc924a26e745a48539' 
+'d8686f318518b0f40e4217ac527131852b6571ea507c9325bce732fc36643c7d'
+ 
+)

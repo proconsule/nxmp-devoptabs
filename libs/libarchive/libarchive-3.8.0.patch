@@ -1,0 +1,87 @@
+diff -ur libarchive-3.8.0-orig/libarchive/archive_random.c libarchive-3.8.0/libarchive/archive_random.c
+--- libarchive-3.8.0-orig/libarchive/archive_random.c	2025-05-20 11:00:39.000000000 +0200
++++ libarchive-3.8.0/libarchive/archive_random.c	2025-05-25 12:17:14.907312546 +0200
+@@ -50,6 +50,10 @@
+ #include <pthread.h>
+ #endif
+ 
++#ifdef __SWITCH__
++#include <fcntl.h>
++#endif
++
+ static void la_arc4random_buf(void *, size_t);
+ 
+ #endif /* HAVE_ARC4RANDOM_BUF */
+diff -ur libarchive-3.8.0-orig/libarchive/archive_read_disk_posix.c libarchive-3.8.0/libarchive/archive_read_disk_posix.c
+--- libarchive-3.8.0-orig/libarchive/archive_read_disk_posix.c	2025-05-20 11:00:39.000000000 +0200
++++ libarchive-3.8.0/libarchive/archive_read_disk_posix.c	2025-05-25 12:17:14.907312546 +0200
+@@ -98,8 +98,10 @@
+ #include "archive_read_disk_private.h"
+ 
+ #ifndef HAVE_FCHDIR
++#ifndef __SWITCH__
+ #error fchdir function required.
+ #endif
++#endif
+ #ifndef O_BINARY
+ #define O_BINARY	0
+ #endif
+diff -ur libarchive-3.8.0-orig/libarchive/archive_read_support_filter_program.c libarchive-3.8.0/libarchive/archive_read_support_filter_program.c
+--- libarchive-3.8.0-orig/libarchive/archive_read_support_filter_program.c	2025-05-20 11:00:39.000000000 +0200
++++ libarchive-3.8.0/libarchive/archive_read_support_filter_program.c	2025-05-25 12:23:23.804465923 +0200
+@@ -57,6 +57,13 @@
+ #include "archive_read_private.h"
+ #include "filter_fork.h"
+ 
++#ifdef __SWITCH__
++int
++__archive_read_program(struct archive_read_filter *self, const char *cmd) {
++	return (ARCHIVE_OK);
++}
++#else
++
+ 
+ #if ARCHIVE_VERSION_NUMBER < 4000000
+ /* Deprecated; remove in libarchive 4.0 */
+@@ -493,3 +500,4 @@
+ 
+ 	return (e);
+ }
++#endif
+\ No newline at end of file
+diff -ur libarchive-3.8.0-orig/libarchive/archive_write_set_format_iso9660.c libarchive-3.8.0/libarchive/archive_write_set_format_iso9660.c
+--- libarchive-3.8.0-orig/libarchive/archive_write_set_format_iso9660.c	2025-05-20 11:00:39.000000000 +0200
++++ libarchive-3.8.0/libarchive/archive_write_set_format_iso9660.c	2025-05-25 12:17:14.911312517 +0200
+@@ -2506,7 +2506,7 @@
+ 
+ #if defined(HAVE__GET_TIMEZONE)
+ 	_get_timezone(&offset);
+-#elif defined(__CYGWIN__) || defined(__MINGW32__) || defined(__BORLANDC__)
++#elif defined(__CYGWIN__) || defined(__MINGW32__) || defined(__BORLANDC__) || defined(__SWITCH__)
+ 	offset = _timezone;
+ #else
+ 	offset = timezone;
+diff -ur libarchive-3.8.0-orig/libarchive_fe/passphrase.c libarchive-3.8.0/libarchive_fe/passphrase.c
+--- libarchive-3.8.0-orig/libarchive_fe/passphrase.c	2025-05-20 11:00:39.000000000 +0200
++++ libarchive-3.8.0/libarchive_fe/passphrase.c	2025-05-25 12:17:14.911312517 +0200
+@@ -129,9 +129,11 @@
+ #endif
+ #include <signal.h>
+ #include <string.h>
++#ifndef __SWITCH__
+ #include <termios.h>
++#endif
+ #include <unistd.h>
+-
++#ifndef __SWITCH__
+ #ifndef _PATH_TTY
+ #define _PATH_TTY "/dev/tty"
+ #endif
+@@ -314,6 +316,7 @@
+ 		errno = save_errno;
+ 	return(nr == -1 ? NULL : buf);
+ }
++#endif
+ #else
+ static char *
+ readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)

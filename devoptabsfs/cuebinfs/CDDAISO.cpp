@@ -1,4 +1,7 @@
 #include "CDDAISO.h"
+
+#ifdef BUILD_CUEBIN
+
 #include "CUEParser.h"
 #include <filesystem>
 #include "string.h"
@@ -17,7 +20,7 @@ typedef struct WAV_HEADER {
                             // Mu-Law, 258=IBM A-Law, 259=ADPCM
   uint16_t NumOfChan = 2;   // Number of channels 1=Mono 2=Sterio
   uint32_t SamplesPerSec = 44100;   // Sampling Frequency in Hz
-  uint32_t bytesPerSec = 44100 * 2; // bytes per second
+  uint32_t bytesPerSec = 44100 * 4; // bytes per second
   uint16_t blockAlign = 4;          // 2=16-bit mono, 4=16-bit stereo
   uint16_t bitsPerSample = 16;      // Number of bits per sample
   /* "data" sub-chunk */
@@ -227,3 +230,5 @@ CCDDAISO::CCDDAISO(std::string _path){
 CCDDAISO::~CCDDAISO(){
 	
 }
+
+#endif

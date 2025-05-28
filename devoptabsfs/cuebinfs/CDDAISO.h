@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_CUEBIN
+
 
 typedef struct{
     std::string trackname;
@@ -62,4 +66,5 @@ private:
     
 };
 
+#endif
 #endif /* CDDAISO_H */

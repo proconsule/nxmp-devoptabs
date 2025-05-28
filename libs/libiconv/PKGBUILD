@@ -1,0 +1,43 @@
+# Maintainer:  Dave Murphy <davem@devkitpro.org>
+
+pkgname=switch-libiconv
+pkgver=1.18
+pkgrel=1
+pkgdesc='Compact Disc (CD) Input and Control Core Library with some ISO9660, and UDF and SCSI MMC'
+arch=('any')
+url="https://ftp.gnu.org/gnu/libiconv/"
+license=('GPL-3.0')
+options=(!strip libtool staticlibs)
+source=(
+ "${url}/libiconv-${pkgver}.tar.gz"
+ "libiconv-${pkgver}.patch"
+)
+
+makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
+groups=('switch-portlibs')
+
+build() {
+  cd libiconv-$pkgver
+
+  source /opt/devkitpro/switchvars.sh
+  patch -Np1 -i "$srcdir"/libiconv-${pkgver}.patch
+  ./configure --prefix="${PORTLIBS_PREFIX}" --host=aarch64-none-elf \
+    --disable-shared --enable-static  --disable-example-progs
+	make -j8
+  
+}
+
+package() {
+  cd libiconv-$pkgver
+
+  source /opt/devkitpro/switchvars.sh
+
+  make DESTDIR="${pkgdir}" install
+
+  rm -r "$pkgdir"${PORTLIBS_PREFIX}/share
+}
+
+sha256sums=('3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8' 
+'4f8e48805b217e0810da92cc1f3244c3f4febcc0756bbc0a7873cdc434b62ba4'
+ 
+)

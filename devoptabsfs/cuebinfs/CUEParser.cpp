@@ -37,6 +37,9 @@
 
 
 #include "CUEParser.h"
+
+#ifdef BUILD_CUEBIN
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -324,3 +327,5 @@ void CUEParser::remove_dot_slash(char * filename, size_t length)
         memmove(filename, filename + 2, length - 2);
     }
 }
+
+#endif

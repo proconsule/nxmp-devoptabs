@@ -1,6 +1,11 @@
 #ifndef FTPFS_DEVOPTAB_H
 #define FTPFS_DEVOPTAB_H
 
+#include "devoptabfs_defines.h"
+
+#ifdef BUILD_FTP
+
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -159,4 +164,5 @@ protected:
 	
 };
 
+#endif
 #endif
