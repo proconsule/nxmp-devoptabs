@@ -1,9 +1,7 @@
-# Maintainer:  Dave Murphy <davem@devkitpro.org>
-
 pkgname=switch-libiconv
 pkgver=1.18
 pkgrel=1
-pkgdesc='Compact Disc (CD) Input and Control Core Library with some ISO9660, and UDF and SCSI MMC'
+pkgdesc='This library provides an iconv() implementation, for use on systems which dont have one, or whose implementation cannot convert from/to Unicode'
 arch=('any')
 url="https://ftp.gnu.org/gnu/libiconv/"
 license=('GPL-3.0')

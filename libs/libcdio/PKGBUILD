@@ -1,5 +1,3 @@
-# Maintainer:  Dave Murphy <davem@devkitpro.org>
-
 pkgname=switch-libcdio
 pkgver=2.2.0
 pkgrel=1
