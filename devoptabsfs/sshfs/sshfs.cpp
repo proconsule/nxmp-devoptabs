@@ -1,9 +1,10 @@
 /* based on https://gist.github.com/averne/527f3a739d19c8d573b2d6995a33edea */
 
-#ifdef BUILD_SSH
+
 
 
 #include "sshfs.h"
+#ifdef BUILD_SSH
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
