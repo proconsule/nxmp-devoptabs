@@ -38,12 +38,12 @@ public:
 	
 	int register_fs() const {
 		
-		//auto id = FindDevice(this->mount_name.data());
+		auto id = FindDevice(this->mount_name.data());
 		
-		//if (id < 0){
-		auto id = AddDevice(&this->devoptab);
-		//	printf("AddDevice\n");
-		//}
+		if (id < 0){
+			id = AddDevice(&this->devoptab);
+			printf("AddDevice\n");
+		}
 		if (id < 0)
 			return id;
 
@@ -87,8 +87,6 @@ private:
         };
 	
 	
-	
-	//struct archive *arch_ctx;
 	std::string cwd = "";
 	std::mutex session_mutex;
 	CCDDAISO *discimage = nullptr;

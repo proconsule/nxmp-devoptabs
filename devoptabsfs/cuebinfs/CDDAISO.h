@@ -8,14 +8,9 @@
 
 #ifdef BUILD_CUEBIN
 
+#include "CUEGlobals.h"
 
-typedef struct{
-    std::string trackname;
-    unsigned int startoffset = 0;
-    unsigned int endoffset = 0;
-    double playtime = 0;
-    
-}cdaudio_struct;
+
 
 
 class CCDDAISO{
@@ -35,7 +30,7 @@ public:
         return binfilesize;
     }
     
-    std::vector<cdaudio_struct> getAudioTracks(){
+    std::vector<cdtrack_struct> getAudioTracks(){
         return cdaudio_tracks;
     }
 	
@@ -60,7 +55,9 @@ private:
     std::string cuefile = "";
     std::string binfile = "";
     long binfilesize = 0;
-    std::vector<cdaudio_struct> cdaudio_tracks;
+    std::vector<cdtrack_struct> cdaudio_tracks;
+	
+	MEDIUM_TYPE mediumtype = MEDIUM_TYPE_UNKNOWN;
 	
 	FILE *binnaryfile;
     

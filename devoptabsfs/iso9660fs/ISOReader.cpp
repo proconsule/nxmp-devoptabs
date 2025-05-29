@@ -39,7 +39,6 @@ int CISOReader::GetPathDir(std::string _path){
     }
     
     p_entlist = iso9660_ifs_readdir (p_iso, _path.c_str());
-    
     if (p_entlist) {
       _CDIO_LIST_FOREACH (p_entnode, p_entlist)
         {
@@ -50,11 +49,23 @@ int CISOReader::GetPathDir(std::string _path){
           iso9660_name_translate(p_statbuf->filename, filename);
           
           dirlist_struct tmp{};
-          tmp.isdir = p_statbuf->type == 2 ? true : false;
+          
+		  tmp.filest.st_mode =  p_statbuf->type == 2 ? S_IFDIR : S_IFREG;
+		  tmp.filest.st_nlink = 1;
+		  tmp.filest.st_uid = 1;
+		  tmp.filest.st_gid = 2;
+		  tmp.filest.st_size = p_statbuf->size;
+		  tmp.filest.st_atime = 0;
+		  tmp.filest.st_mtime =0;
+		  tmp.filest.st_ctime = 0;
+		  
           tmp.filename = filename;
           tmp.lsn = p_statbuf->lsn;
           tmp.size = p_statbuf->size;
           currdirlist.push_back(tmp);
+		  
+		 //iso9660_stat_free(p_statbuf);
+		  
 		  /*
           printf ("%s [LSN %6d] %8u %s %s\n",
                   2 == p_statbuf->type ? "d" : "-",
@@ -64,11 +75,14 @@ int CISOReader::GetPathDir(std::string _path){
           
           
         }
-        iso9660_filelist_free(p_entlist);
+        
     }else{
         return -1;
     }
     
+	if (p_entlist != NULL)
+		iso9660_filelist_free(p_entlist);
+	
     return 0;
 }
 
@@ -91,15 +105,11 @@ int CISOReader::ISO_ReadFileData(std::string _path,size_t _offset,size_t _size,c
     const lsn_t lsn = p_statbuf->lsn + startblock;
     
 	int readret = iso9660_iso_seek_read (p_iso, buf, lsn, readblocks);
-	
-    //if ( ISO_BLOCKSIZE != readret) {
-    //    printf("BLOCK SIZE ERROR %d\r\n",readret);
-	//	return -1;
-    //}
-    
+	 
     const unsigned int startbyte = _offset%2048;
     memcpy(ptr,&buf[startbyte],_size);
-    
+    iso9660_stat_free(p_statbuf);
+	
     return 0;
 }
 

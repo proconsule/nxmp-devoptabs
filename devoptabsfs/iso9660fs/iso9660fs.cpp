@@ -52,7 +52,6 @@ CISO9660FS::~CISO9660FS(){
 bool CISO9660FS::connect(){
 	ISOReader = new CISOReader(connect_url);
 	if(!ISOReader->valid)return false;
-	
 	register_fs();
 	this->fs_regisered = true;
 	
@@ -67,26 +66,16 @@ int CISO9660FS::iso9660fs_open(struct _reent *r, void *fileStruct, const char *p
 	auto lk = std::scoped_lock(priv->session_mutex);
 	
 	std::filesystem::path const p( std::regex_replace(std::string(path), std::regex("^"+ priv->name), ""));
-	
 	std::string mypath = p.filename().c_str();
 	
 	memset(priv_file->filename,0,255*sizeof(char));
 	memcpy(priv_file->filename,mypath.c_str(),mypath.length());
 	iso9660_stat_t * p_statbuf =  iso9660_ifs_stat_translate (priv->ISOReader->getHandle(), priv_file->filename);
-    priv_file->size = p_statbuf->size;
+    isostat_translate_entry(p_statbuf,&priv_file->filest);
 	priv_file->offset = 0;
-	free(p_statbuf);
+	iso9660_stat_free(p_statbuf);
 
 	return 0;
-}
-
-int CISO9660FS::iso9660fs_close(struct _reent *r, void *fd) {
-    auto *priv      = static_cast<CISO9660FS     *>(r->deviceData);
-    auto *priv_file = static_cast<CISO9660File *>(fd);
-
-    auto lk = std::scoped_lock(priv->session_mutex);
-
-    return 0;
 }
 
 ssize_t CISO9660FS::iso9660fs_read(struct _reent *r, void *fd, char *ptr, size_t len) {
@@ -118,7 +107,7 @@ off_t CISO9660FS::iso9660fs_seek(struct _reent *r, void *fd, off_t pos, int dir)
             offset = priv_file->offset;
             break;
         case SEEK_END:
-            offset = priv_file->size;
+            offset = priv_file->filest.st_size;
             break;
     }
 
@@ -130,22 +119,8 @@ off_t CISO9660FS::iso9660fs_seek(struct _reent *r, void *fd, off_t pos, int dir)
 
 int CISO9660FS::iso9660fs_fstat(struct _reent *r, void *fd, struct stat *st) {
     auto *priv_file = static_cast<CISO9660File *>(fd);
-	
-	
-	*st = {};
-	
-	st->st_mode = S_IFREG;
-	st->st_nlink = 1;
-	st->st_uid = 1;
-	st->st_gid = 2;
-	st->st_size = priv_file->size;
-	st->st_atime = 0;
-	st->st_mtime =0;
-	st->st_ctime = 0;
-	
-		
-	
-    return 0;
+	memcpy(st,&priv_file->filest,sizeof(struct stat));
+	return 0;
 }
 
 int CISO9660FS::iso9660fs_stat(struct _reent *r, const char *file, struct stat *st) {
@@ -157,7 +132,7 @@ int CISO9660FS::iso9660fs_stat(struct _reent *r, const char *file, struct stat *
 	std::string filename = std::regex_replace(std::string(file), std::regex("^"+ priv->name), "");
 	iso9660_stat_t * p_statbuf =  iso9660_ifs_stat_translate (priv->ISOReader->getHandle(), filename.c_str());
     isostat_translate_entry(p_statbuf,st);
-	free(p_statbuf);
+	iso9660_stat_free(p_statbuf);
 	
     return 0;
 }
@@ -174,6 +149,16 @@ int CISO9660FS::iso9660fs_chdir(struct _reent *r, const char *name) {
 
     return 0;
 }
+
+int CISO9660FS::iso9660fs_close(struct _reent *r, void *fd) {
+    auto *priv      = static_cast<CISO9660FS     *>(r->deviceData);
+    auto *priv_file = static_cast<CISO9660File *>(fd);
+
+    auto lk = std::scoped_lock(priv->session_mutex);
+
+    return 0;
+}
+
 
 DIR_ITER *CISO9660FS::iso9660fs_diropen(struct _reent *r, DIR_ITER *dirState, const char *path) {
     auto *priv     = static_cast<CISO9660FS    *>(r->deviceData);
@@ -212,7 +197,8 @@ int CISO9660FS::iso9660fs_dirnext(struct _reent *r, DIR_ITER *dirState, char *fi
 	
 	memset(filename, 0, NAME_MAX);
 	memcpy(filename,priv->ISOReader->getCurrentDirlist()[priv_dir->diridx].filename.data(),priv->ISOReader->getCurrentDirlist()[priv_dir->diridx].filename.length());
-    
+    memcpy(filestat,&priv->ISOReader->getCurrentDirlist()[priv_dir->diridx].filest,sizeof(struct stat));
+	/*
 	*filestat = {
         .st_mode     = priv->ISOReader->getCurrentDirlist()[priv_dir->diridx].isdir ? S_IFDIR:S_IFREG,
         .st_uid      =  1,
@@ -231,7 +217,7 @@ int CISO9660FS::iso9660fs_dirnext(struct _reent *r, DIR_ITER *dirState, char *fi
             .tv_nsec = 0,
         },
     };
-	
+	*/
 	
 	priv_dir->diridx = priv_dir->diridx+1;
 		

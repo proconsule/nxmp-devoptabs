@@ -10,7 +10,7 @@
 #include <vector>
 #include <cstring>
 
-
+#include <sys/iosupport.h>
 #include <cdio/iso9660.h>
 
 
@@ -18,6 +18,7 @@ typedef struct{
     int32_t lsn;
     bool isdir;
     uint32_t size;
+	struct stat filest;
     std::string filename;
     
 }dirlist_struct;

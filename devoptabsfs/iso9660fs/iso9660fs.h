@@ -86,7 +86,7 @@ private:
 	
 	struct CISO9660File {
 		char filename[255];
-		size_t size;
+		struct stat filest;
 		off_t offset;
     };
 

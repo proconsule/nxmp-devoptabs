@@ -187,12 +187,22 @@ CCDDAISO::CCDDAISO(std::string _path){
         binfilesize = filesize(binfile);
         if(binfilesize == -1)return;
         while(tracktest != nullptr){
-            cdaudio_struct tmp;
+            cdtrack_struct tmp;
             
+			if(tracktest->track_mode == 0){
+				if(mediumtype == MEDIUM_TYPE_UNKNOWN){
+					mediumtype = MEDIUM_TYPE_CDAUDIO;
+				}else if(mediumtype == MEDIUM_TYPE_DATA){
+					mediumtype = MEDIUM_TYPE_MIXED;
+				}
+                tmp.audiotrack = true;
+            }
 			if(tracktest->track_mode != 0){
-				delete test;
-				free(buffer);
-				return;
+				if(mediumtype == MEDIUM_TYPE_UNKNOWN){
+					mediumtype = MEDIUM_TYPE_DATA;
+				}else if(mediumtype == MEDIUM_TYPE_CDAUDIO){
+					mediumtype = MEDIUM_TYPE_MIXED;
+				}
 			}
             tmp.startoffset = tracktest->track_start*tracktest->sector_length;
            
@@ -207,7 +217,11 @@ CCDDAISO::CCDDAISO(std::string _path){
 			ss << std::setw(2) << std::setfill('0') << cdaudio_tracks.size()+1;
 			std::string s_trackid = ss.str();
 			
-			tmp.trackname = std::string("Track_" + s_trackid  + std::string(".wav"));
+			if(tmp.audiotrack){
+                tmp.trackname = std::string("Track_" + s_trackid  + std::string(".wav"));
+            }else{
+                tmp.trackname = std::string("Track_" + s_trackid  + std::string(".data"));
+            }
             tmp.playtime = ((tmp.endoffset-tmp.startoffset)/2352.0)/75.0;
             cdaudio_tracks.push_back(tmp);
 
@@ -227,8 +241,9 @@ CCDDAISO::CCDDAISO(std::string _path){
     
 }
 
+
 CCDDAISO::~CCDDAISO(){
+	if(binnaryfile != NULL)fclose(binnaryfile);
 	
 }
-
 #endif
