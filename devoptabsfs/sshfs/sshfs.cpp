@@ -11,6 +11,35 @@
 #include <sys/syslimits.h>
 #include <regex>
 
+std::mutex CSSHFS::s_lib_mutex;
+int        CSSHFS::s_lib_refcount = 0;
+
+
+bool CSSHFS::lib_ref_acquire(){
+	if (this->lib_ref_taken)
+		return true;
+
+	auto lk = std::scoped_lock(CSSHFS::s_lib_mutex);
+	if (CSSHFS::s_lib_refcount == 0) {
+		if (libssh2_init(0) != 0)
+			return false;
+	}
+	CSSHFS::s_lib_refcount++;
+	this->lib_ref_taken = true;
+	return true;
+}
+
+void CSSHFS::lib_ref_release(){
+	if (!this->lib_ref_taken)
+		return;
+
+	auto lk = std::scoped_lock(CSSHFS::s_lib_mutex);
+	this->lib_ref_taken = false;
+	if (--CSSHFS::s_lib_refcount == 0) {
+		libssh2_exit();
+	}
+}
+
 int ssh2_translate_error(int error, LIBSSH2_SFTP *sftp_session) {
     switch (error) {
         default:
@@ -307,7 +336,7 @@ CSSHFS::~CSSHFS(){
     if (this->ssh_session)
         libssh2_session_free(this->ssh_session);
 
-    libssh2_exit();
+    this->lib_ref_release();
 	if(fs_regisered){
 		unregister_fs();
 	}
@@ -338,8 +367,8 @@ int CSSHFS::connect_pubkey(std::string host, std::uint16_t port,
         std::string username, std::string pubkeypath,std::string privkeypath,std::string passphrase){
 		
 	
-	if (auto rc = libssh2_init(0); rc)
-        return rc;
+	if (!this->lib_ref_acquire())
+		return -1;
 
     this->ssh_session = libssh2_session_init();
     if (!this->ssh_session){
