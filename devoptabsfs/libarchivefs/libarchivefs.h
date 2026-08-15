@@ -1,7 +1,7 @@
 #ifndef ARCHIVEFS_DEVOPTAB_H
 #define ARCHIVEFS_DEVOPTAB_H
 
-#include "devoptabfs_defines.h"
+#include "../devoptabfs_defines.h"
 
 #ifdef BUILD_ARCHIVE
 

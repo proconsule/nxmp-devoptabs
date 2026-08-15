@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "devoptabfs_defines.h"
+#include "../devoptabfs_defines.h"
 
 #ifdef BUILD_CUEBIN
 

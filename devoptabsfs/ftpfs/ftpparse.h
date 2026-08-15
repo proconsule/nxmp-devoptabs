@@ -1,7 +1,7 @@
 #ifndef FTPPARSE_H
 #define FTPPARSE_H
 
-#include "devoptabfs_defines.h"
+#include "../devoptabfs_defines.h"
 
 #ifdef BUILD_FTP
 

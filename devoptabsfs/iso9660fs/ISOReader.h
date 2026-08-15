@@ -2,7 +2,7 @@
 #define ISOREADER_H
 
 
-#include "devoptabfs_defines.h"
+#include "../devoptabfs_defines.h"
 
 #ifdef BUILD_ISO9660
 

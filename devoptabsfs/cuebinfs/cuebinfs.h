@@ -1,7 +1,7 @@
 #ifndef CUEBINFS_DEVOPTAB_H
 #define CUEBINFS_DEVOPTAB_H
 
-#include "devoptabfs_defines.h"
+#include "../devoptabfs_defines.h"
 
 #ifdef BUILD_CUEBIN
 
