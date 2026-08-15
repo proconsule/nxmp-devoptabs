@@ -1,7 +1,7 @@
 #ifndef SMB2FS_DEVOPTAB_H
 #define SMB2FS_DEVOPTAB_H
 
-#include "devoptabfs_defines.h"
+#include "../devoptabfs_defines.h"
 
 #ifdef BUILD_SMB2
 

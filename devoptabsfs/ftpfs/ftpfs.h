@@ -1,7 +1,7 @@
 #ifndef FTPFS_DEVOPTAB_H
 #define FTPFS_DEVOPTAB_H
 
-#include "devoptabfs_defines.h"
+#include "../devoptabfs_defines.h"
 
 #ifdef BUILD_FTP
 
