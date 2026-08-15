@@ -1,7 +1,7 @@
 #ifndef UGLY_FTPLIB_H
 #define UGLY_FTPLIB_H
 
-#include "devoptabfs_defines.h"
+#include "../devoptabfs_defines.h"
 
 #ifdef BUILD_FTP
 
