@@ -424,8 +424,8 @@ int CSSHFS::connect(std::string host, std::uint16_t port,
         std::string username, std::string password){
 	
 	
-	if (auto rc = libssh2_init(0); rc)
-        return rc;
+	if (!this->lib_ref_acquire())
+        return -1;
 
     this->ssh_session = libssh2_session_init();
     if (!this->ssh_session){
