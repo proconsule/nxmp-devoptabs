@@ -11,6 +11,34 @@
 #include <sys/syslimits.h>
 #include <regex>
 
+std::mutex CSSHFS::s_lib_mutex;
+int        CSSHFS::s_lib_refcount = 0;
+
+bool CSSHFS::lib_ref_acquire(){
+	if (this->lib_ref_taken)
+		return true;
+
+	auto lk = std::scoped_lock(CSSHFS::s_lib_mutex);
+	if (CSSHFS::s_lib_refcount == 0) {
+		if (libssh2_init(0) != 0)
+			return false;
+	}
+	CSSHFS::s_lib_refcount++;
+	this->lib_ref_taken = true;
+	return true;
+}
+
+void CSSHFS::lib_ref_release(){
+	if (!this->lib_ref_taken)
+		return;
+
+	auto lk = std::scoped_lock(CSSHFS::s_lib_mutex);
+	this->lib_ref_taken = false;
+	if (--CSSHFS::s_lib_refcount == 0) {
+		libssh2_exit();
+	}
+}
+
 int ssh2_translate_error(int error, LIBSSH2_SFTP *sftp_session) {
     switch (error) {
         default:
@@ -176,7 +204,11 @@ CSSHFS::CSSHFS(std::string _server,int _port,std::string _username,std::string _
 	this->username = _username;
 	this->password = _password;
 	this->path = _path;
-	this->port = _port;
+	if(_port == 0){
+		this->port = 22;
+	}else{
+		this->port = _port;
+	}
 
     this->devoptab = {
         .name         = CSSHFS::name.data(),
@@ -307,7 +339,7 @@ CSSHFS::~CSSHFS(){
     if (this->ssh_session)
         libssh2_session_free(this->ssh_session);
 
-    libssh2_exit();
+    this->lib_ref_release();
 	if(fs_regisered){
 		unregister_fs();
 	}
@@ -338,8 +370,8 @@ int CSSHFS::connect_pubkey(std::string host, std::uint16_t port,
         std::string username, std::string pubkeypath,std::string privkeypath,std::string passphrase){
 		
 	
-	if (auto rc = libssh2_init(0); rc)
-        return rc;
+	if (!this->lib_ref_acquire())
+        return -1;
 
     this->ssh_session = libssh2_session_init();
     if (!this->ssh_session){
@@ -394,22 +426,42 @@ int CSSHFS::connect_pubkey(std::string host, std::uint16_t port,
 int CSSHFS::connect(std::string host, std::uint16_t port,
         std::string username, std::string password){
 	
+	printf("[sshfs] connect(): host='%s' port=%u user='%s'\n", host.c_str(), (unsigned)port, username.c_str());
+	fflush(stdout);
 	
-	if (auto rc = libssh2_init(0); rc)
-        return rc;
+	if (!this->lib_ref_acquire()){
+        printf("[sshfs] libssh2_init failed\n");
+		fflush(stdout);
+        return -1;
+	}
 
     this->ssh_session = libssh2_session_init();
     if (!this->ssh_session){
+        printf("[sshfs] libssh2_session_init failed\n");
+		fflush(stdout);
         return -1;
 	}
+	printf("[sshfs] ssh_session ok\n");
+	fflush(stdout);
 	
 	this->socket = ::socket(AF_INET, SOCK_STREAM, 0);
     if (this->socket < 0){
+        printf("[sshfs] socket() failed errno=%d\n", errno);
+		fflush(stdout);
         return -1;
 	}
+	printf("[sshfs] socket() ok fd=%d\n", this->socket);
+	fflush(stdout);
 	
 
     auto hostaddr = inet_addr(host.data());
+    if (hostaddr == INADDR_NONE){
+        printf("[sshfs] inet_addr('%s') returned INADDR_NONE - not a valid dotted-decimal IPv4 address\n", host.c_str());
+		fflush(stdout);
+        return -1;
+	}
+	printf("[sshfs] inet_addr('%s') = 0x%08x\n", host.c_str(), (unsigned)hostaddr);
+	fflush(stdout);
 
     sockaddr_in sin = {
         .sin_family = AF_INET,
@@ -420,22 +472,43 @@ int CSSHFS::connect(std::string host, std::uint16_t port,
     };
 
 	
-    if (auto rc = ::connect(this->socket, reinterpret_cast<sockaddr *>(&sin), sizeof(sin)); rc)
+    if (auto rc = ::connect(this->socket, reinterpret_cast<sockaddr *>(&sin), sizeof(sin)); rc){
+        printf("[sshfs] ::connect() failed rc=%d errno=%d\n", rc, errno);
+		fflush(stdout);
         return errno;
+	}
+	printf("[sshfs] TCP connect() ok\n");
+	fflush(stdout);
 
 	
     auto lk = std::scoped_lock(this->session_mutex);
 
 	
-    if (auto rc = libssh2_session_handshake(this->ssh_session, this->socket); rc)
+    if (auto rc = libssh2_session_handshake(this->ssh_session, this->socket); rc){
+        printf("[sshfs] libssh2_session_handshake failed rc=%d\n", rc);
+		fflush(stdout);
         return ssh2_translate_error(rc, nullptr);
+	}
+	printf("[sshfs] ssh handshake ok\n");
+	fflush(stdout);
 
-    if (auto rc = libssh2_userauth_password(this->ssh_session, username.data(), password.data()); rc)
+    if (auto rc = libssh2_userauth_password(this->ssh_session, username.data(), password.data()); rc){
+        printf("[sshfs] libssh2_userauth_password failed rc=%d\n", rc);
+		fflush(stdout);
         return ssh2_translate_error(rc, nullptr);
+	}
+	printf("[sshfs] userauth_password ok\n");
+	fflush(stdout);
 
     this->sftp_session = libssh2_sftp_init(this->ssh_session);
-    if (!this->sftp_session)
-        return ssh2_translate_error(libssh2_session_last_errno(this->ssh_session), this->sftp_session);
+    if (!this->sftp_session){
+        auto lasterr = libssh2_session_last_errno(this->ssh_session);
+        printf("[sshfs] libssh2_sftp_init failed last_errno=%d\n", lasterr);
+		fflush(stdout);
+        return ssh2_translate_error(lasterr, this->sftp_session);
+	}
+	printf("[sshfs] sftp_init ok - connected\n");
+	fflush(stdout);
 
     libssh2_session_set_blocking(this->ssh_session, 1);
 

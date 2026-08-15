@@ -93,8 +93,13 @@ private:
 		
 	
 	void disconnect();
+
+	static std::mutex s_lib_mutex;
+	static int        s_lib_refcount;
+	bool              lib_ref_taken = false;
 	
-	
+	bool lib_ref_acquire();
+	void lib_ref_release();
 	
 	std::string translate_path(const char *path);
 
@@ -124,7 +129,7 @@ private:
 	sshurlschema parseSSHUrl(std::string url);
 	LIBSSH2_SESSION *ssh_session  = nullptr;
 	LIBSSH2_SFTP    *sftp_session = nullptr;
-	int socket;
+	int socket = -1;
 	sshurlschema urlschema;
 	std::string cwd = "";
 	std::mutex session_mutex;
