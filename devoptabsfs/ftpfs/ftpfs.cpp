@@ -11,6 +11,7 @@
 #include <regex>
 
 #include "ugly-ftplib.h"
+#include <sstream>
 
 #define MAX_READBUF 8192
 
