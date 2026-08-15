@@ -1,7 +1,7 @@
 #ifndef SSHFS_DEVOPTAB_H
 #define SSHFS_DEVOPTAB_H
 
-#include "../devoptabfs_defines.h"
+#include "devoptabfs_defines.h"
 
 #ifdef BUILD_SSH
 
@@ -94,15 +94,14 @@ private:
 	
 	void disconnect();
 	
-	static std::mutex s_lib_mutex;
-	static int        s_lib_refcount;
-	bool              lib_ref_taken = false;
 	
-	bool lib_ref_acquire();
-	void lib_ref_release();
-		
+	
 	std::string translate_path(const char *path);
 
+	
+	
+	
+	
 	struct CSSHFSFile {
             LIBSSH2_SFTP_HANDLE *handle;
             LIBSSH2_SFTP_ATTRIBUTES attrs;
